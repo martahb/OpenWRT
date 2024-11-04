@@ -4,28 +4,28 @@
 # 
 #	1.00	CJ	Pierwsza wersja kodu
 #	1.01	RD	Drobna przebudowa
-#	1.02	RD	Korekta b³êdu wy¶w. zajeto¶ci Flash-a, dodanie kolorów
+#	1.02	RD	Korekta bï¿½ï¿½du wyï¿½w. zajetoï¿½ci Flash-a, dodanie kolorï¿½w
 #	1.03	RD	Dodanie nazwy routera, zmiana formatowania
 #	1.04	RD	Kosmetyka, sugestie @mikhnal. Zmiana przetwarzania info. o wan.
 #	1.05	RD	Zmiana algorytmu pobierania danych dla wan i lan
-#	1.06	RD	Parametryzacja kolorów i pojawiania siê podkre¶leñ
-#	1.07	RD	Modyfikacja zwi±zana z poprawnym wy¶wietlaniem interfejsu dla prot.3g
-#	1.08	RD	Modyfikacja wy¶wietlania DNS-ów dla wan, dodanie uptime dla interfejsów
-#	1.09	RD	Dodanie statusu "Down" dla wy³±czonego wifi, zmiana wy¶wietlania dla WLAN(sta)
-#	1.10	RD	Korekta wy¶wietlania dla WLAN(sta)
-#	1.11	RD	Korekta wy¶wietlania stanu pamiêci, sugestie @dopsz 
-#	1.12	RD	Zmiana kolejno¶ci wy¶wietlania warto¶ci stanu pamiêci + kosmetyka 
-#	1.13	RD	Dodanie info o dhcp w LAN, zmiana sposobu wy¶wietlania informacji o LAN
-#	1.14	RD	Dodanie informacji o ostatnich 5 b³êdach
+#	1.06	RD	Parametryzacja kolorï¿½w i pojawiania siï¿½ podkreï¿½leï¿½
+#	1.07	RD	Modyfikacja zwiï¿½zana z poprawnym wyï¿½wietlaniem interfejsu dla prot.3g
+#	1.08	RD	Modyfikacja wyï¿½wietlania DNS-ï¿½w dla wan, dodanie uptime dla interfejsï¿½w
+#	1.09	RD	Dodanie statusu "Down" dla wyï¿½ï¿½czonego wifi, zmiana wyï¿½wietlania dla WLAN(sta)
+#	1.10	RD	Korekta wyï¿½wietlania dla WLAN(sta)
+#	1.11	RD	Korekta wyï¿½wietlania stanu pamiï¿½ci, sugestie @dopsz 
+#	1.12	RD	Zmiana kolejnoï¿½ci wyï¿½wietlania wartoï¿½ci stanu pamiï¿½ci + kosmetyka 
+#	1.13	RD	Dodanie info o dhcp w LAN, zmiana sposobu wyï¿½wietlania informacji o LAN
+#	1.14	RD	Dodanie informacji o ostatnich 5 bï¿½ï¿½dach
 #	1.15	RD	Zmiana stderr
-#	1.16	RD	Dodanie wy¶wietlania informacji o swap
+#	1.16	RD	Dodanie wyï¿½wietlania informacji o swap
 #	1.17	RD	Zmiana wyliczania informacji o flash
-#	1.18	RD	Zmiana wy¶wietlania informacji o flash
-#	1.19	RD	Zmiana wy¶wietlania informacji o sprzêcie
-#	1.20	RD	Zmiana wy¶wietlania informacji o sprzêcie
-#	1.21	RD	Dopasowyanie szeroko¶ci do zawarto¶ci /etc/banner
-#	1.22	RD	Dodanie wyœwietlania w HTML-u
-#	1.23	RD  Poprawki w wyœwietlaniu LAN-DHCP i WLAN
+#	1.18	RD	Zmiana wyï¿½wietlania informacji o flash
+#	1.19	RD	Zmiana wyï¿½wietlania informacji o sprzï¿½cie
+#	1.20	RD	Zmiana wyï¿½wietlania informacji o sprzï¿½cie
+#	1.21	RD	Dopasowyanie szerokoï¿½ci do zawartoï¿½ci /etc/banner
+#	1.22	RD	Dodanie wyï¿½wietlania w HTML-u
+#	1.23	RD  Poprawki w wyï¿½wietlaniu LAN-DHCP i WLAN
 # Destination /sbin/sysinfo.sh
 #
 . /usr/share/libubox/jshn.sh
@@ -357,46 +357,48 @@ print_lan() {
 	for Zone in $(uci -q show firewall | grep []]=zone | cut -f2 -d. | cut -f1 -d=); do
 		if [ "$(uci -q get firewall.$Zone.masq)" != "1" ]; then
 			for Device in $(uci -q get firewall.$Zone.network); do
-				local Status="$(ubus call network.interface.$Device status 2>/dev/null)"
-				if [ "$Status" != "" ]; then
-					local State=""
-					local Iface=""
-					local IP4=""
-					local IP6=""
-					local Subnet4=""
-					local Subnet6=""
-					json_load "${Status:-{}}"
-					json_get_var State up
-					json_get_var Iface device
-					if json_get_type Status ipv4_address && [ "$Status" = array ]; then
-						json_select ipv4_address
-						json_get_type Status 1
-						if [ "$Status" = object ]; then
-							json_select 1
-							json_get_var IP4 address
-							json_get_var Subnet4 mask
-							[ "$IP4" != "" ] && [ "$Subnet4" != "" ] && IP4="$IP4/$Subnet4"
+				if [ "$(uci -q get dhcp.$Device.start)" != "" ]; then
+					local Status="$(ubus call network.interface.$Device status 2>/dev/null)"
+					if [ "$Status" != "" ]; then
+						local State=""
+						local Iface=""
+						local IP4=""
+						local IP6=""
+						local Subnet4=""
+						local Subnet6=""
+						json_load "${Status:-{}}"
+						json_get_var State up
+						json_get_var Iface device
+						if json_get_type Status ipv4_address && [ "$Status" = array ]; then
+							json_select ipv4_address
+							json_get_type Status 1
+							if [ "$Status" = object ]; then
+								json_select 1
+								json_get_var IP4 address
+								json_get_var Subnet4 mask
+								[ "$IP4" != "" ] && [ "$Subnet4" != "" ] && IP4="$IP4/$Subnet4"
+							fi
 						fi
-					fi
-					json_select
-					if json_get_type Status ipv6_address && [ "$Status" = array ]; then
-						json_select ipv6_address
-						json_get_type Status 1
-						if [ "$Status" = object ]; then
-							json_select 1
-							json_get_var IP6 address
-							json_get_var Subnet6 mask
-							[ "$IP6" != "" ] && [ "$Subnet6" != "" ] && IP6="$IP6/$Subnet6"
+						json_select
+						if json_get_type Status ipv6_address && [ "$Status" = array ]; then
+							json_select ipv6_address
+							json_get_type Status 1
+							if [ "$Status" = object ]; then
+								json_select 1
+								json_get_var IP6 address
+								json_get_var Subnet6 mask
+								[ "$IP6" != "" ] && [ "$Subnet6" != "" ] && IP6="$IP6/$Subnet6"
+							fi
 						fi
-					fi
-					local DHCPConfig=$(uci -q show dhcp | grep -E .interface=\.?$Device\.? | cut -d. -f2)
-					if [ "$DHCPConfig" != "" ] && [ "$(uci -q get dhcp.$DHCPConfig.ignore)" != "1" ]; then
-						local DHCPStart=$(uci -q get dhcp.$DHCPConfig.start)
-						local DHCPLimit=$(uci -q get dhcp.$DHCPConfig.limit)
-						[ "$DHCPStart" != "" ] && [ "$DHCPLimit" != "" ] && DHCP="$(echo $IP4 | cut -d. -f1-3).$DHCPStart-$(expr $DHCPStart + $DHCPLimit - 1)"
-					fi
-					[ "$IP4" != "" ] && print_line "LAN: $AddrColor$IP4$NormalColor($Iface), dhcp: $AddrColor${DHCP:-n/a}$NormalColor"
-					[ "$IP6" != "" ] && print_line "LAN: $AddrColor$IP6$NormalColor($Iface)"
+#					DHCPConfig=$(uci -q show dhcp | grep -E .interface=\.?$Device\.? | cut -d. -f2)
+#					if [ "$DHCPConfig" != "" ] && [ "$(uci -q get dhcp.$DHCPConfig.ignore)" != "1" ]; then
+							local DHCPStart=$(uci -q get dhcp.$Device.start)
+							local DHCPLimit=$(uci -q get dhcp.$Device.limit)
+							[ "$DHCPStart" != "" ] && [ "$DHCPLimit" != "" ] && DHCP="$(echo $IP4 | cut -d. -f1-3).$DHCPStart-$(expr $DHCPStart + $DHCPLimit - 1)"
+#					fi
+						[ "$IP4" != "" ] && print_line "LAN: $AddrColor$IP4$NormalColor($Iface), dhcp: $AddrColor${DHCP:-n/a}$NormalColor"
+						[ "$IP6" != "" ] && print_line "LAN: $AddrColor$IP6$NormalColor($Iface)"
+					fi		
 				fi
 			done
 		fi 
@@ -513,5 +515,5 @@ print_extra
 [ "$EndRuler" == "1" ] && print_horizontal_ruler
 [ "$LastErrors" == "1" ] && print_error
 finalize
-exit 0
+#exit 0
 # Done.
